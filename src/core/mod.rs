@@ -1,3 +1,5 @@
+use std::fmt;
+
 use anyhow::{Context, Result};
 use regex::Regex;
 use subprocess::{Exec, Redirection};
@@ -11,7 +13,7 @@ pub fn run() -> Result<()> {
         .stdout_str();
     for line in out.lines() {
         let cmt = CommitTitle::new(line);
-        println!("orig: {}\n{:#?}", line, cmt);
+        println!("orig: {}\n{}\n", line, cmt.unwrap());
     }
 
     Ok(())
@@ -42,6 +44,27 @@ impl CommitTitle {
             component: cap.get(4).map(|text| text.as_str().to_string()),
             summary: cap.get(5)?.as_str().to_string(),
         })
+    }
+}
+
+impl fmt::Display for CommitTitle {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "Commit Information:
+Hash: {}
+Type: {}
+Component: {}
+Summary: {}
+Is Breaking Change: {}",
+            self.hash,
+            self.prefix,
+            self.component
+                .as_ref()
+                .unwrap_or(&String::from("No Component")),
+            self.summary,
+            self.is_breaking
+        )
     }
 }
 
