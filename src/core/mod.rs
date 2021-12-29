@@ -4,7 +4,7 @@ use subprocess::{Exec, Redirection};
 
 pub fn run() -> Result<()> {
     let out = Exec::cmd("git")
-        .args(&["log", "--oneline", "--pretty=\"%s\""])
+        .args(&["log", "--oneline", "--pretty='format:(%h) %s'"])
         .stdout(Redirection::Pipe)
         .capture()
         .with_context(|| "fail to execute git command")?
