@@ -78,9 +78,13 @@ mod test {
             println!("{:?}", ct);
             ct.is_some()
         };
-        assert!(should_work("(4b05c2e) new,core: implement commit title parser"));
+        assert!(should_work(
+            "(4b05c2e) new,core: implement commit title parser"
+        ));
         assert!(should_work("(e0fbc13) rew,core: remove useless pretty arg"));
         assert!(should_work("(8eee8e5) new: initiate changelog generator"));
-        assert!(should_work("(adad53h) rew!plugins: remove famiu/nvim-reload"));
+        assert!(should_work(
+            "(adad53h) rew!plugins: remove famiu/nvim-reload"
+        ));
     }
 }
