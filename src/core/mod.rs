@@ -4,6 +4,36 @@ use anyhow::{Context, Result};
 use regex::Regex;
 use subprocess::{Exec, Redirection};
 
+struct CommitCollection {
+    store: Vec<CommitTitle>,
+}
+
+impl CommitCollection {
+    fn new() -> CommitCollection {
+        CommitCollection {
+            store: Vec::new(),
+        }
+    }
+
+    fn push(&mut self, commit: CommitTitle) {
+        self.store.push(commit);
+    }
+}
+
+impl fmt::Display for CommitCollection {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let mut output = String::new();
+        for commit in &self.store {
+            if let Some(component) = &commit.component {
+                output.push_str(format!("* {}: {}\n", component, commit.summary).as_str());
+            } else {
+                output.push_str(format!("* {}\n", commit.summary).as_str());
+            }
+        }
+        write!(f, "{}", output)
+    }
+}
+
 pub fn run() -> Result<()> {
     let out = Exec::cmd("git")
         .args(&["log", "--oneline", "--pretty=(%h) %s"])
@@ -11,10 +41,58 @@ pub fn run() -> Result<()> {
         .capture()
         .with_context(|| "fail to execute git command")?
         .stdout_str();
+    let mut breaking_change_commit = CommitCollection::new();
+    let mut feature_commit = CommitCollection::new();
+    let mut fix_commit = CommitCollection::new();
+    let mut changes_commit = CommitCollection::new();
+    let mut uncategory = Vec::new();
     for line in out.lines() {
         let cmt = CommitTitle::new(line);
-        println!("orig: {}\n{}\n", line, cmt.unwrap());
+        if let Some(cmt) = cmt {
+            if cmt.is_breaking {
+                breaking_change_commit.push(cmt);
+            } else {
+                match cmt.prefix.as_str() {
+                    "new" => feature_commit.push(cmt),
+                    "fix" => fix_commit.push(cmt),
+                    "rwt" => changes_commit.push(cmt),
+                    _ => uncategory.push(line),
+                }
+            }
+        } else {
+            uncategory.push(line);
+        }
     }
+
+    println!(
+        "Version {}
+==========
+{description}
+
+
+Breaking Changes
+----------------
+{breakchange}
+
+Features
+--------
+{feature}
+
+Fix
+---
+{fix}
+
+Changes
+--------
+{changes}
+",
+        0.1,
+        description = "Fuck You",
+        breakchange = breaking_change_commit,
+        feature = feature_commit,
+        fix = fix_commit,
+        changes = changes_commit,
+    );
 
     Ok(())
 }
