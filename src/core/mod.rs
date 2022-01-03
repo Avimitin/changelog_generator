@@ -10,9 +10,7 @@ struct CommitCollection {
 
 impl CommitCollection {
     fn new() -> CommitCollection {
-        CommitCollection {
-            store: Vec::new(),
-        }
+        CommitCollection { store: Vec::new() }
     }
 
     fn push(&mut self, commit: CommitTitle) {
@@ -119,7 +117,13 @@ impl CommitTitle {
             hash: cap.get(1)?.as_str().to_string(),
             prefix: cap.get(2)?.as_str().to_string(),
             is_breaking: cap.get(3)?.as_str() == "!",
-            component: cap.get(4).map(|text| text.as_str().to_string()),
+            component: cap.get(4).and_then(|text| {
+                if text.as_str().is_empty() {
+                    None
+                } else {
+                    Some(text.as_str().to_string())
+                }
+            }),
             summary: cap.get(5)?.as_str().to_string(),
         })
     }
