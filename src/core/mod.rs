@@ -3,6 +3,9 @@ use std::fmt;
 use anyhow::{Context, Result};
 use regex::Regex;
 use subprocess::{Exec, Redirection};
+use clap::Parser;
+
+mod cli;
 
 struct CommitCollection {
     store: Vec<CommitTitle>,
@@ -39,32 +42,41 @@ impl fmt::Display for CommitCollection {
 }
 
 pub fn run() -> Result<()> {
+    let cli = cli::Args::parse();
+
     let out = Exec::cmd("git")
-        .args(&["log", "--oneline", "--pretty=(%h) %s"])
+        .args(&["log", "--oneline", "--pretty=(%h) %s", cli.range()])
         .stdout(Redirection::Pipe)
         .capture()
         .with_context(|| "fail to execute git command")?
         .stdout_str();
+
     let mut breaking_change_commit = CommitCollection::new();
     let mut feature_commit = CommitCollection::new();
     let mut fix_commit = CommitCollection::new();
     let mut changes_commit = CommitCollection::new();
     let mut uncategory = Vec::new();
+
     for line in out.lines() {
         let cmt = CommitTitle::new(line);
-        if let Some(cmt) = cmt {
-            if cmt.is_breaking {
-                breaking_change_commit.push(cmt);
-            } else {
-                match cmt.prefix.as_str() {
-                    "new" => feature_commit.push(cmt),
-                    "fix" => fix_commit.push(cmt),
-                    "rwt" => changes_commit.push(cmt),
-                    _ => uncategory.push(line),
-                }
-            }
-        } else {
+
+        if cmt.is_none() {
             uncategory.push(line);
+            continue;
+        }
+
+        let cmt = cmt.unwrap();
+
+        if cmt.is_breaking {
+            breaking_change_commit.push(cmt);
+            continue;
+        }
+
+        match cmt.prefix.as_str() {
+            "new" => feature_commit.push(cmt),
+            "fix" => fix_commit.push(cmt),
+            "rwt" => changes_commit.push(cmt),
+            _ => uncategory.push(line),
         }
     }
 
@@ -91,7 +103,7 @@ Changes
 {changes}
 ",
         0.1,
-        description = "Fuck You",
+        description = cli.description().unwrap_or(&String::from("")),
         breakchange = breaking_change_commit,
         feature = feature_commit,
         fix = fix_commit,
