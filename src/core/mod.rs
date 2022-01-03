@@ -21,6 +21,12 @@ impl CommitCollection {
 impl fmt::Display for CommitCollection {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut output = String::new();
+
+        if self.store.is_empty() {
+            output.push_str("Null");
+            return write!(f, "{}", output);
+        }
+
         for commit in &self.store {
             if let Some(component) = &commit.component {
                 output.push_str(format!("* {}: {}\n", component, commit.summary).as_str());
