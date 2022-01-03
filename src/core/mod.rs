@@ -48,9 +48,8 @@ pub fn run() -> Result<()> {
 
     println!(
         "{}
-==========
+{}
 {description}
-
 
 Breaking Changes
 ----------------
@@ -69,6 +68,7 @@ Changes
 {changes}
 ",
         cli.range(),
+        "=".repeat(cli.range().len()),
         description = cli.description().unwrap_or(&String::from("")),
         breakchange = breaking_change_commit,
         feature = feature_commit,
