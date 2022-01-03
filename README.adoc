@@ -1,0 +1,57 @@
+= Changelog Generator
+
+A simple program to easily generate changelog for my
+link:https://commit-convention.sh1mar.in[commit convention] .
+
+== Usage
+
+....
+$ changelog_generate --help
+
+
+changelog_generate 0.1.0
+
+USAGE:
+    changelog_generate [OPTIONS] <RANGE>
+
+ARGS:
+    <RANGE>    Same as the git revision range, pass to the git log command
+
+OPTIONS:
+    -d, --description <DESCRIPTION>    Add description under the header
+    -h, --help                         Print help information
+    -V, --version                      Print version information
+....
+
+== Example
+
+....
+$ changelog_generate --description="Pleas take a look on breaking change! Their are important!" 3.9.10..3.10.0
+
+
+3.9.10..3.10.0
+==========
+Pleas take a look on breaking change! Their are important!
+
+
+Breaking Changes
+----------------
+* plugin: replace file picker plugin
+* keymap: update lazygit keymap
+
+
+Features
+--------
+* plugin: add new plugin neorg
+* statusline: add short line icon for fern
+
+
+Fix
+---
+* lsp: replace show line diagnostic api
+
+
+Changes
+--------
+* plugin: update neorg workspace directory
+....
