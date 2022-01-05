@@ -66,6 +66,10 @@ Fix
 Changes
 --------
 {changes}
+
+Others
+------
+{others:#?}
 ",
         cli.range(),
         "=".repeat(cli.range().len()),
@@ -74,6 +78,7 @@ Changes
         feature = feature_commit,
         fix = fix_commit,
         changes = changes_commit,
+        others = uncategory,
     );
 
     Ok(())
