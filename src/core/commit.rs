@@ -4,15 +4,15 @@ use regex::Regex;
 /// CommitTitle contains semantic version information from commit message
 #[allow(dead_code)]
 #[derive(Debug)]
-pub struct CommitTitle {
-    hash: String,
-    prefix: String,
-    component: Option<String>,
-    summary: String,
+pub struct CommitTitle<'a> {
+    hash: &'a str,
+    prefix: &'a str,
+    component: Option<&'a str>,
+    summary: &'a str,
     is_breaking: bool,
 }
 
-impl CommitTitle {
+impl<'a> CommitTitle<'a> {
     /// Parse a commit to `CommitTitle`
     ///
     /// # Example
@@ -36,17 +36,17 @@ impl CommitTitle {
         let cap = re.captures(title)?;
 
         Some(CommitTitle {
-            hash: cap.get(1)?.as_str().to_string(),
-            prefix: cap.get(2)?.as_str().to_string(),
+            hash: cap.get(1)?.as_str(),
+            prefix: cap.get(2)?.as_str(),
             is_breaking: cap.get(3)?.as_str() == "!",
             component: cap.get(4).and_then(|text| {
                 if text.as_str().is_empty() {
                     None
                 } else {
-                    Some(text.as_str().to_string())
+                    Some(text.as_str())
                 }
             }),
-            summary: cap.get(5)?.as_str().to_string(),
+            summary: cap.get(5)?.as_str(),
         })
     }
 
@@ -61,7 +61,7 @@ impl CommitTitle {
     }
 }
 
-impl fmt::Display for CommitTitle {
+impl<'a> fmt::Display for CommitTitle<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
@@ -74,8 +74,7 @@ Is Breaking Change: {}",
             self.hash,
             self.prefix,
             self.component
-                .as_ref()
-                .unwrap_or(&String::from("No Component")),
+                .unwrap_or("No Component"),
             self.summary,
             self.is_breaking
         )
@@ -103,21 +102,21 @@ mod test {
     }
 }
 
-pub struct CommitCollection {
-    store: Vec<CommitTitle>,
+pub struct CommitCollection<'a> {
+    store: Vec<CommitTitle<'a>>,
 }
 
-impl CommitCollection {
-    pub fn new() -> CommitCollection {
+impl<'a> CommitCollection<'a> {
+    pub fn new() -> CommitCollection<'a> {
         CommitCollection { store: Vec::new() }
     }
 
-    pub fn push(&mut self, commit: CommitTitle) {
+    pub fn push(&mut self, commit: CommitTitle<'a>) {
         self.store.push(commit);
     }
 }
 
-impl fmt::Display for CommitCollection {
+impl<'a> fmt::Display for CommitCollection<'a> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut output = String::new();
 
