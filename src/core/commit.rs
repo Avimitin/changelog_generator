@@ -1,7 +1,7 @@
 use std::fmt;
 use regex::Regex;
 
-// CommitTitle contains semantic version information from commit message
+/// CommitTitle contains semantic version information from commit message
 #[allow(dead_code)]
 #[derive(Debug)]
 pub struct CommitTitle {
@@ -13,6 +13,23 @@ pub struct CommitTitle {
 }
 
 impl CommitTitle {
+    /// Parse a commit to `CommitTitle`
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// let commit = CommitTitle::new("(ae87b3c) new,plugin: modify the plugin sequences")
+    ///
+    /// assert_eq!(commit, Some(
+    ///   CommitTitle{
+    ///     hash: String::from("ae87b3c"),
+    ///     prefix: String::from("new"),
+    ///     component: Option(String::from("plugin")),
+    ///     summary: "modify the plugin sequences",
+    ///     is_breaking: false,
+    ///   })
+    /// )
+    /// ```
     pub fn new(title: &str) -> Option<CommitTitle> {
         let rule = r"\(([a-zA-Z0-9]+)\) ([a-zA-Z]{3})([,|!]?)([a-zA-Z/]*): (.+)";
         let re = Regex::new(rule).unwrap();
@@ -33,10 +50,12 @@ impl CommitTitle {
         })
     }
 
+    /// Return true if the commit contains `!` character
     pub fn is_breaking(&self) -> bool {
         self.is_breaking
     }
 
+    /// Return the commit type
     pub fn prefix(&self) -> &str {
         &self.prefix
     }
